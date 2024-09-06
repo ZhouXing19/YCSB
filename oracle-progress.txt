@@ -1,0 +1,113 @@
+- Tutorial:
+https://www.dbi-services.com/blog/ycsb-nosql-benchmark-on-oracle-database/
+
+- passed:
+mvn -pl site.ycsb:jdbc-binding -am package -DskipTests dependency:build-classpath -DincludeScope=compile -Dmdep.outputFilterFile=true
+
+[INFO] YCSB Root .......................................... SUCCESS [  6.254 s]
+[INFO] Core YCSB .......................................... SUCCESS [  6.099 s]
+[INFO] Per Datastore Binding descriptor ................... SUCCESS [  0.199 s]
+[INFO] YCSB Datastore Binding Parent ...................... SUCCESS [  0.514 s]
+[INFO] JDBC DB Binding .................................... SUCCESS [  2.287 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+
+
+- Important Envs
+
+export LD_LIBRARY_PATH=/Users/janexing/Downloads/instantclient_23_3
+export MY_ORACLE_HOME=$LD_LIBRARY_PATH
+export MY_TNS_ADMIN=$MY_ORACLE_HOME/network/admin
+export MY_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+export MY_CLASSPATH="$MY_ORACLE_HOME/ojdbc8.jar"
+
+- /tmp/ycsb.database.properties
+
+db.driver=oracle.jdbc.driver.OracleDriver
+db.url=jdbc:oracle:oci:@//localhost:1521/ORCLCDB
+db.user=c##myadmin
+db.passwd=myadmin
+db.schema=C##MYADMIN
+jdbc.fetchsize=10
+jdbc.autocommit=true
+jdbc.batchupdateapi=false
+db.batchsize=1000
+table="C##MYADMIN"."USERTABLE"
+
+- Create user
+
+CREATE USER c##myadmin IDENTIFIED BY myadmin;
+GRANT CONNECT, RESOURCE, DBA TO c##myadmin;
+
+
+- Create table
+
+connect c##myadmin/myadmin
+
+CREATE TABLE usertable (
+    YCSB_KEY VARCHAR(255) PRIMARY KEY,
+    FIELD0 VARCHAR(255), FIELD1 VARCHAR(255),
+    FIELD2 VARCHAR(255), FIELD3 VARCHAR(255),
+    FIELD4 VARCHAR(255), FIELD5 VARCHAR(255),
+    FIELD6 VARCHAR(255), FIELD7 VARCHAR(255),
+    FIELD8 VARCHAR(255), FIELD9 VARCHAR(255),
+    source_timestamp TIMESTAMP(9) DEFAULT CURRENT_TIMESTAMP
+);
+
+
+- /tmp/ycsb.workload.properties
+
+threadcount=1
+fieldcount=1
+fieldlength=42
+recordcount=100000
+operationcount=10000
+workload=site.ycsb.workloads.CoreWorkload
+readallfields=true
+readproportion=0.3
+updateproportion=0.2
+scanproportion=0.1
+insertproportion=0.4
+requestdistribution=zipfian
+minscanlength=1
+maxscanlength=1000
+
+
+
+- Actual Load
+
+> ./bin/ycsb.sh load jdbc -P /tmp/ycsb.workload.properties -P /tmp/ycsb.database.properties
+/usr/bin/java  -classpath /Users/janexing/go/src/github.com/YCSB/conf:/Users/janexing/go/src/github.com/YCSB/core/target/core-0.18.0-SNAPSHOT.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/src/main/conf:/Users/janexing/go/src/github.com/YCSB/jdbc/target/jdbc-binding-0.18.0-SNAPSHOT.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/commons-collections-3.2.1.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/commons-lang-2.4.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/commons-pool-1.5.4.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/geronimo-jms_1.1_spec-1.1.1.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/geronimo-jta_1.1_spec-1.1.1.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/openjpa-jdbc-2.1.1.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/openjpa-kernel-2.1.1.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/openjpa-lib-2.1.1.jar:/Users/janexing/go/src/github.com/YCSB/jdbc/target/dependency/serp-1.13.1.jar site.ycsb.Client -load -db site.ycsb.db.JdbcDBClient -P /tmp/ycsb.workload.properties -P /tmp/ycsb.database.properties
+Command line: -load -db site.ycsb.db.JdbcDBClient -P /tmp/ycsb.workload.properties -P /tmp/ycsb.database.properties
+YCSB Client 0.18.0-SNAPSHOT
+
+Loading workload...
+Exception in thread "main" java.lang.NoClassDefFoundError: org/apache/htrace/core/Tracer$Builder
+        at site.ycsb.Client.getTracer(Client.java:458)
+        at site.ycsb.Client.main(Client.java:304)
+Caused by: java.lang.ClassNotFoundException: org.apache.htrace.core.Tracer$Builder
+        at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:641)
+        at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+        at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)
+        ... 2 more
+ (might take a few minutes for large data sets)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

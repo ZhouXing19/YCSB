@@ -208,9 +208,15 @@ else
   # Core dependency libraries
   for f in "$YCSB_HOME"/core/target/dependency/*.jar ; do
     if [ -r "$f" ] ; then
+      echo "show jar: $f"
       CLASSPATH="$CLASSPATH:$f"
     fi
   done
+
+  CLASSPATH="$CLASSPATH:/Users/janexing/.m2/repository/org/apache/htrace/htrace-core4/4.2.0-incubating/htrace-core4-4.2.0-incubating.jar"
+  CLASSPATH="$CLASSPATH:/Users/janexing/.m2/repository/org/hdrhistogram/HdrHistogram/2.1.4/HdrHistogram-2.1.4.jar"
+
+
 
   # Database conf (need to find because location is not consistent)
   CLASSPATH_CONF=$(find "$YCSB_HOME"/$BINDING_DIR -name "conf" | while IFS="" read -r file; do echo ":$file"; done)
@@ -247,6 +253,16 @@ fi
 
 # Get the rest of the arguments
 YCSB_ARGS=$(echo "$@" | cut -d' ' -f3-)
+
+export LD_LIBRARY_PATH=/Users/janexing/Downloads/instantclient_23_3
+export MY_ORACLE_HOME=$LD_LIBRARY_PATH
+export MY_TNS_ADMIN=$MY_ORACLE_HOME/network/admin
+export MY_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+export MY_CLASSPATH="$MY_ORACLE_HOME/ojdbc8.jar"
+
+CLASSPATH="$CLASSPATH:$MY_CLASSPATH"
+
+JAVA_OPTS="-Djava.library.path=/Users/janexing/Downloads/instantclient_23_3"
 
 # About to run YCSB
 echo "$JAVA_HOME/bin/java $JAVA_OPTS -classpath $CLASSPATH $YCSB_CLASS $YCSB_COMMAND -db $BINDING_CLASS $YCSB_ARGS"
